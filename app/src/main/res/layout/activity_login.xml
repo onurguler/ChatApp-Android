@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="48dp"
+        android:layout_gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"
+            android:text="@string/app_name"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="@color/indigo600"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:text="@string/sign_in_to_continue" />
+
+        <EditText
+            android:id="@+id/et_email"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp"
+            android:paddingHorizontal="12dp"
+            android:ems="10"
+            android:drawableStart="@drawable/email_icon_indigo"
+            android:drawablePadding="16dp"
+            android:background="@drawable/et_indigo"
+            android:hint="@string/enter_email"
+            android:autofillHints="@string/enter_email"
+            android:inputType="textEmailAddress"
+            android:maxLines="1"
+            android:textCursorDrawable="@drawable/cursor_indigo"/>
+
+        <EditText
+            android:id="@+id/et_password"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp"
+            android:paddingHorizontal="12dp"
+            android:ems="10"
+            android:drawableStart="@drawable/lock_icon_indigo"
+            android:drawablePadding="16dp"
+            android:background="@drawable/et_indigo"
+            android:hint="@string/password"
+            android:autofillHints="@string/password"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:textCursorDrawable="@drawable/cursor_indigo"/>
+
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="12dp"
+            android:drawableStart="@drawable/ic_person"
+            android:drawableTint="@android:color/secondary_text_dark"
+            android:background="@drawable/btn_indigo"
+            android:text="@string/login"
+            android:textAllCaps="false"
+            android:textColor="#fff"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dont_have_an_account" />
+
+            <Button
+                android:id="@+id/btn_signup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/signup"
+                android:textAllCaps="false"
+                android:textColor="@color/indigo600"
+                style="@style/Widget.AppCompat.Button.Borderless"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
