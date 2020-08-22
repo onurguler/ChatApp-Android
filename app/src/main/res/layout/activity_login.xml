@@ -63,19 +63,29 @@
             android:maxLines="1"
             android:textCursorDrawable="@drawable/cursor_indigo"/>
 
+        <TextView
+            android:id="@+id/txt_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_gravity="center"
+            android:textColor="@color/red600"
+            android:visibility="gone"/>
+
         <Button
             android:id="@+id/btn_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="12dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/btn_indigo"
             android:drawableStart="@drawable/ic_person"
             android:drawableTint="@android:color/secondary_text_dark"
-            android:background="@drawable/btn_indigo"
+            android:onClick="onClickLogin"
+            android:paddingHorizontal="12dp"
             android:text="@string/login"
             android:textAllCaps="false"
             android:textColor="#fff"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp"/>
+            android:textSize="16sp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
