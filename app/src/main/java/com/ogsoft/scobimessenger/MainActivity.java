@@ -6,6 +6,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
@@ -34,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<Conversation> conversationArrayList;
 
+    private User currentUser;
+
+    private View.OnClickListener onConversationClickListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,11 +47,22 @@ public class MainActivity extends AppCompatActivity {
 
         AndroidNetworking.initialize(getApplicationContext());
 
+        currentUser = LocalUserService.getLocalUserFromPreferences(this);
+
         RecyclerView rv_conversationList = findViewById(R.id.rv_conversationList);
         conversationArrayList = new ArrayList<Conversation>();
-        conversationListAdapter = new ConversationListAdapter(conversationArrayList, LocalUserService.getLocalUserFromPreferences(this));
+        conversationListAdapter = new ConversationListAdapter(conversationArrayList, currentUser);
         rv_conversationList.setLayoutManager(new LinearLayoutManager(this));
         rv_conversationList.setAdapter(conversationListAdapter);
+
+        onConversationClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onClickConversation(view);
+            }
+        };
+
+        conversationListAdapter.setOnItemClickListener(onConversationClickListener);
 
         getConversationsFromApi();
     }
@@ -55,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         // Check if user exists in local db
-        User user = LocalUserService.getLocalUserFromPreferences(this);
-        if (user.email == null) {
+        currentUser = LocalUserService.getLocalUserFromPreferences(this);
+        if (currentUser.email == null) {
             // Send to LoginActivity
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
@@ -120,6 +137,15 @@ public class MainActivity extends AppCompatActivity {
 
                                         conversation.lastMessage = message;
 
+                                        if (conversation.type.equals(Conversation.TYPE_PRIVATE)) {
+                                            for (User participant: conversation.participants) {
+                                                if (!participant.email.equals(currentUser.email)) {
+                                                    conversation.toUser = participant;
+                                                    break;
+                                                }
+                                            }
+                                        }
+
                                         conversationArrayList.add(conversation);
                                     }
 
@@ -136,5 +162,12 @@ public class MainActivity extends AppCompatActivity {
                         });
             }
         }
+    }
+
+    private void onClickConversation(View view) {
+        RecyclerView.ViewHolder viewHolder = (RecyclerView.ViewHolder) view.getTag();
+        int position = viewHolder.getAdapterPosition();
+        Conversation conversation = conversationArrayList.get(position);
+        Toast.makeText(this, "You click: " + conversation.toUser.name + ", at: " + position, Toast.LENGTH_SHORT).show();
     }
 }

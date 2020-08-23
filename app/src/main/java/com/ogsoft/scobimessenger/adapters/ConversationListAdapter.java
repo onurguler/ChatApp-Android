@@ -21,6 +21,8 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
     private ArrayList<Conversation> conversationArrayList;
     private User currentUser;
 
+    private View.OnClickListener onItemClickListener;
+
     public ConversationListAdapter(ArrayList<Conversation> conversationArrayList, User currentUser) {
         this.conversationArrayList = conversationArrayList;
         this.currentUser = currentUser;
@@ -54,7 +56,11 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
         return conversationArrayList.size();
     }
 
-    static class ConversationViewHolder extends RecyclerView.ViewHolder {
+    public void setOnItemClickListener(View.OnClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
+    }
+
+    public class ConversationViewHolder extends RecyclerView.ViewHolder {
         public CircleImageView iv_conversation_avatar;
         public TextView txt_conversation_displayName, txt_conversation_lastMessageDate,
                 txt_conversation_lastMessage, txt_conversation_unreadCount;
@@ -67,6 +73,9 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
             txt_conversation_lastMessageDate = itemView.findViewById(R.id.tv_conversation_lastMessageDate);
             txt_conversation_lastMessage = itemView.findViewById(R.id.tv_conversation_lastMessage);
             txt_conversation_unreadCount = itemView.findViewById(R.id.tv_conversation_unreadCount);
+
+            itemView.setTag(this);
+            itemView.setOnClickListener(onItemClickListener);
         }
     }
 }
