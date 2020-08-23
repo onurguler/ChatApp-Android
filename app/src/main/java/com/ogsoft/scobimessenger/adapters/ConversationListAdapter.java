@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ogsoft.scobimessenger.R;
 import com.ogsoft.scobimessenger.models.Conversation;
 import com.ogsoft.scobimessenger.models.User;
+import com.ogsoft.scobimessenger.services.Tools;
 
 import java.util.ArrayList;
 
@@ -47,7 +48,7 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
             }
         }
 
-        holder.txt_conversation_lastMessageDate.setText(conversation.lastMessage.createdAt);
+        holder.txt_conversation_lastMessageDate.setText(Tools.formatDateToTime(conversation.lastMessage.createdAt));
         holder.txt_conversation_lastMessage.setText(conversation.lastMessage.text);
     }
 

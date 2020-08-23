@@ -13,6 +13,7 @@ import com.ogsoft.scobimessenger.R;
 import com.ogsoft.scobimessenger.models.Conversation;
 import com.ogsoft.scobimessenger.models.Message;
 import com.ogsoft.scobimessenger.models.User;
+import com.ogsoft.scobimessenger.services.Tools;
 
 import java.util.ArrayList;
 
@@ -93,7 +94,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
 
         void bind(Message message) {
             messageText.setText(message.text);
-            timeText.setText(message.createdAt);
+            timeText.setText(Tools.formatDateToTime(message.createdAt));
         }
     }
 
@@ -113,7 +114,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
 
         void bind (Message message) {
             messageText.setText(message.text);
-            timeText.setText(message.createdAt);
+            timeText.setText(Tools.formatDateToTime(message.createdAt));
             nameText.setText(message.user);
 
             if (conversation.type.equals(Conversation.TYPE_PRIVATE)) {
