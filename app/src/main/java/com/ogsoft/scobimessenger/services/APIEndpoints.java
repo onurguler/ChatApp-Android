@@ -8,4 +8,6 @@ public class APIEndpoints {
 
     public static final String signUp = BASE_URL + "/api/v1/auth/signup";
 
+    public static final String getAllConversations = BASE_URL + "/api/v1/chats";
+
 }

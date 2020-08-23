@@ -90,26 +90,24 @@ public class LoginActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = pref.edit();
                                 editor.putString("token", token);
 
-                                JSONObject dataObject = response.optJSONObject("data");
-                                if (dataObject != null) {
-                                    JSONObject userObject = dataObject.optJSONObject("user");
+                                JSONObject dataObject = response.getJSONObject("data");
+                                JSONObject userObject = dataObject.getJSONObject("user");
 
-                                    if (userObject != null) {
-                                        String uuid = userObject.optString("_id");
-                                        String name = userObject.optString("name");
-                                        String email = userObject.optString("email");
+                                String uuid = userObject.getString("_id");
+                                String name = userObject.getString("name");
+                                String email = userObject.getString("email");
 
-                                        User loggedInUser = new User();
-                                        loggedInUser.uuid = uuid;
-                                        loggedInUser.name = name;
-                                        loggedInUser.email = email;
+                                User loggedInUser = new User();
+                                loggedInUser.uuid = uuid;
+                                loggedInUser.name = name;
+                                loggedInUser.email = email;
 
-                                        // Save loggedInUser to local db
-                                        editor.putString("uuid", uuid);
-                                        editor.putString("name", name);
-                                        editor.putString("email", email);
-                                    }
-                                }
+                                // Save loggedInUser to local db
+                                editor.putString("uuid", uuid);
+                                editor.putString("name", name);
+                                editor.putString("email", email);
+
+                                editor.apply();
                                 editor.commit();
 
                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
