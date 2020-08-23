@@ -10,4 +10,8 @@ public class APIEndpoints {
 
     public static final String getAllConversations = BASE_URL + "/api/v1/chats";
 
+    public static final String getConversation = BASE_URL + "/api/v1/chats/conversations/{id}";
+
+    public static final String getConversationMessages = BASE_URL + "/api/v1/chats/conversations/{id}/messages";
+
 }

@@ -8,5 +8,6 @@
     <color name="indigo500">#667EEA</color>
     <color name="indigo600">#5A67D8</color>
     <color name="red600">#E53E3E</color>
+    <color name="gray300">#E2E8F0</color>
     <color name="gray900">#1A202C</color>
 </resources>

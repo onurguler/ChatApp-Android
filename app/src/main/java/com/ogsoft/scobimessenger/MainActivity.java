@@ -38,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
     private User currentUser;
 
-    private View.OnClickListener onConversationClickListener;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         rv_conversationList.setLayoutManager(new LinearLayoutManager(this));
         rv_conversationList.setAdapter(conversationListAdapter);
 
-        onConversationClickListener = new View.OnClickListener() {
+        View.OnClickListener onConversationClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 onClickConversation(view);
@@ -88,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
-            return;
         }
     }
 
@@ -103,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
                         .getAsJSONObject(new JSONObjectRequestListener() {
                             @Override
                             public void onResponse(JSONObject response) {
+                                conversationArrayList.clear();
                                 try {
                                     JSONObject dataObject = response.getJSONObject("data");
                                     JSONArray conversationsArray = dataObject.getJSONArray("conversations");
@@ -168,6 +166,8 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView.ViewHolder viewHolder = (RecyclerView.ViewHolder) view.getTag();
         int position = viewHolder.getAdapterPosition();
         Conversation conversation = conversationArrayList.get(position);
-        Toast.makeText(this, "You click: " + conversation.toUser.name + ", at: " + position, Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra("conversationUUID", conversation.uuid);
+        startActivity(intent);
     }
 }
