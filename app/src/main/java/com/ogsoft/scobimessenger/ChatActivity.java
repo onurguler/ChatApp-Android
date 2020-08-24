@@ -98,7 +98,7 @@ public class ChatActivity extends AppCompatActivity {
                                     User user = new User();
                                     user.uuid = participantObject.getString("_id");
                                     user.name = participantObject.getString("name");
-                                    user.email = participantObject.getString("email");
+                                    user.username = participantObject.getString("username");
                                     conversation.participants.add(user);
                                 }
 
@@ -120,7 +120,7 @@ public class ChatActivity extends AppCompatActivity {
 
                                 if (conversation.type.equals(Conversation.TYPE_PRIVATE)) {
                                     for (User participant: conversation.participants) {
-                                        if (!participant.email.equals(currentUser.email)) {
+                                        if (!participant.username.equals(currentUser.username)) {
                                             conversation.toUser = participant;
                                             break;
                                         }

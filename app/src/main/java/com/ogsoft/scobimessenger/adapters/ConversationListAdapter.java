@@ -42,8 +42,12 @@ public class ConversationListAdapter extends RecyclerView.Adapter<ConversationLi
         Conversation conversation = conversationArrayList.get(position);
 
         for (User user: conversation.participants) {
-            if (currentUser.name != null && !user.name.equals(currentUser.name)) {
-                holder.txt_conversation_displayName.setText(user.name);
+            if (currentUser.username != null && !user.username.equals(currentUser.username)) {
+                if (user.name != null && user.name.length() > 0) {
+                    holder.txt_conversation_displayName.setText(user.name);
+                } else {
+                    holder.txt_conversation_displayName.setText(user.username);
+                }
                 break;
             }
         }

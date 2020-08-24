@@ -108,15 +108,22 @@ public class RegisterActivity extends AppCompatActivity {
                                         String uuid = userObject.optString("_id");
                                         String name = userObject.optString("name");
                                         String email = userObject.optString("email");
+                                        String username = userObject.optString("username");
+                                        String createdAt = userObject.optString("createdAt");
+                                        String updatedAt = userObject.optString("updatedAt");
 
                                         User loggedInUser = new User();
                                         loggedInUser.uuid = uuid;
                                         loggedInUser.name = name;
                                         loggedInUser.email = email;
+                                        loggedInUser.username = username;
+                                        loggedInUser.createdAt = createdAt;
+                                        loggedInUser.updatedAt = updatedAt;
 
                                         // Save loggedInUser to local db
                                         editor.putString("uuid", uuid);
                                         editor.putString("name", name);
+                                        editor.putString("username", username);
                                         editor.putString("email", email);
                                     }
                                 }

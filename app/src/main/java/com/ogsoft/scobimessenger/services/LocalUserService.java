@@ -13,6 +13,7 @@ public class LocalUserService {
         user.id = pref.getInt("id", 0);
         user.uuid = pref.getString("uuid", null);
         user.name = pref.getString("name", null);
+        user.username = pref.getString("username", null);
         user.email = pref.getString("email", null);
         return user;
     }
