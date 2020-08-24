@@ -14,4 +14,6 @@ public class APIEndpoints {
 
     public static final String getConversationMessages = BASE_URL + "/api/v1/chats/conversations/{id}/messages";
 
+    public static final String sendMessageToConversation = BASE_URL + "/api/v1/chats/conversations/{id}";
+
 }

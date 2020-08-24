@@ -5,6 +5,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
@@ -23,9 +26,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+
 public class ChatActivity extends AppCompatActivity {
+
+    private EditText et_message;
 
     private RecyclerView rv_messageList;
     private MessageListAdapter messageListAdapter;
@@ -36,6 +46,9 @@ public class ChatActivity extends AppCompatActivity {
     private Token token;
 
     private ArrayList<Message> messageArrayList;
+
+    private Socket socket;
+    private boolean isConnected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +62,8 @@ public class ChatActivity extends AppCompatActivity {
             // TODO: Authentication error
             finish();
         }
+
+        et_message = findViewById(R.id.et_message);
 
         conversationUUID = getIntent().getStringExtra("conversationUUID");
         conversation = new Conversation();
@@ -154,6 +169,7 @@ public class ChatActivity extends AppCompatActivity {
                                     messageArrayList.add(message);
                                 }
                                 messageListAdapter.notifyDataSetChanged();
+                                initializeSocket();
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 System.out.println("JSON error");
@@ -167,4 +183,124 @@ public class ChatActivity extends AppCompatActivity {
                     });
         }
     }
+
+    public void onClickSend(View view) {
+        if (!Tools.isNetworkAvailable(this)) {
+            Toast.makeText(this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String text = et_message.getText().toString().trim();
+
+        if (text.isEmpty()) {
+            return;
+        }
+
+        et_message.setText("");
+
+        JSONObject bodyObject = new JSONObject();
+
+        try {
+            bodyObject.put("text", text);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        AndroidNetworking.post(APIEndpoints.sendMessageToConversation)
+                .addPathParameter("id", conversationUUID)
+                .addHeaders("Authorization", Token.prefix + " " + token.key)
+                .addJSONObjectBody(bodyObject)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+
+                    }
+                });
+    }
+
+    private void initializeSocket() {
+        IO.Options opts = new IO.Options();
+        opts.query = "auth_token=" + token.key;
+
+        try {
+            socket = IO.socket(APIEndpoints.BASE_URL, opts);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        socket.on(Socket.EVENT_CONNECT, onConnect);
+        socket.on("chat_message", onChatMessage);
+        socket.connect();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (socket != null) {
+            socket.disconnect();
+            socket.off(Socket.EVENT_CONNECT, onConnect);
+            socket.off("chat_message", onChatMessage);
+            socket.close();
+        }
+    }
+
+    // Socket io connect event
+    private Emitter.Listener onConnect = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (!isConnected) {
+                        JSONObject dataObject = new JSONObject();
+                        try {
+                            dataObject.put("id", conversationUUID);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        socket.emit("conversation", dataObject);
+                        isConnected = true;
+                    }
+                }
+            });
+        }
+    };
+
+    // Socket io chat_message event
+    private Emitter.Listener onChatMessage = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject dataObject = (JSONObject) args[0];
+                    try {
+                        JSONObject messageObject = dataObject.getJSONObject("message");
+                        Message message = new Message();
+                        message.uuid = messageObject.getString("_id");
+                        message.user = messageObject.getString("user");
+                        message.conversation = messageObject.getString("conversation");
+                        message.text = messageObject.getString("text");
+                        message.createdAt = messageObject.getString("createdAt");
+                        message.updatedAt = messageObject.getString("updatedAt");
+
+                        messageArrayList.add(message);
+
+                        messageListAdapter.notifyDataSetChanged();
+
+                        rv_messageList.smoothScrollToPosition(messageArrayList.size() - 1);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
 }
