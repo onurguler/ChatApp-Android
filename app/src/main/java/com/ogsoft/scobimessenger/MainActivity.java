@@ -168,6 +168,17 @@ public class MainActivity extends AppCompatActivity {
         Conversation conversation = conversationArrayList.get(position);
         Intent intent = new Intent(this, ChatActivity.class);
         intent.putExtra("conversationUUID", conversation.uuid);
+        intent.putExtra("conversationType", conversation.type);
+        intent.putExtra("isNewConversation", false);
+        if (conversation.type.equals(Conversation.TYPE_PRIVATE)) {
+            if (conversation.toUser != null) {
+                if (conversation.toUser.name != null && !conversation.toUser.name.isEmpty()) {
+                    intent.putExtra("displayName", conversation.toUser.name);
+                } else {
+                    intent.putExtra("displayName", conversation.toUser.username);
+                }
+            }
+        }
         startActivity(intent);
     }
 }

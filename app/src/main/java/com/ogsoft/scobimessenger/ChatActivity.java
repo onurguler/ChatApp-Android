@@ -1,6 +1,7 @@
 package com.ogsoft.scobimessenger;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,6 +29,7 @@ import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -62,6 +64,21 @@ public class ChatActivity extends AppCompatActivity {
             // TODO: Authentication error
             finish();
         }
+
+        Toolbar toolbar = findViewById(R.id.toolbarChatActivity);
+        setSupportActionBar(toolbar);
+
+        String conversationType = getIntent().getStringExtra("conversationType");
+
+        if (conversationType != null && conversationType.equals(Conversation.TYPE_PRIVATE) && getIntent().hasExtra("displayName")) {
+            String displayName = getIntent().getStringExtra("displayName");
+            Objects.requireNonNull(getSupportActionBar()).setTitle(displayName);
+        }
+
+        // getSupportActionBar().setTitle("Deneme");
+        Objects.requireNonNull(getSupportActionBar()).setSubtitle("online");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         et_message = findViewById(R.id.et_message);
 

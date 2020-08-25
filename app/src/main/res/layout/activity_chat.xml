@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".ChatActivity">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarChatActivity"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        app:layout_constraintTop_toTopOf="parent"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_messageList"
         android:layout_width="match_parent"
@@ -13,7 +22,7 @@
         app:layout_constraintBottom_toBottomOf="@id/view"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbarChatActivity" />
 
     <!-- A horizontal line between the chatbox and RecyclerView -->
     <View
