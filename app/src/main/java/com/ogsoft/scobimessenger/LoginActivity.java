@@ -21,6 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.ogsoft.scobimessenger.models.User;
 import com.ogsoft.scobimessenger.services.APIEndpoints;
+import com.ogsoft.scobimessenger.services.ChatDatabaseHelper;
 import com.ogsoft.scobimessenger.services.Tools;
 
 import org.json.JSONException;
@@ -33,10 +34,14 @@ public class LoginActivity extends AppCompatActivity {
 
     private ProgressDialog pd;
 
+    private ChatDatabaseHelper helper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        helper = ChatDatabaseHelper.getInstance(this);
 
         et_email = findViewById(R.id.et_email);
         et_password = findViewById(R.id.et_password);
@@ -110,6 +115,8 @@ public class LoginActivity extends AppCompatActivity {
                                 loggedInUser.updatedAt = updatedAt;
 
                                 // Save loggedInUser to local db
+                                helper.addOrUpdateUser(loggedInUser);
+
                                 editor.putString("uuid", uuid);
                                 editor.putString("name", name);
                                 editor.putString("username", username);

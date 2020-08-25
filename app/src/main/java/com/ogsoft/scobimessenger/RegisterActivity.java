@@ -18,6 +18,7 @@ import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.ogsoft.scobimessenger.models.User;
 import com.ogsoft.scobimessenger.services.APIEndpoints;
+import com.ogsoft.scobimessenger.services.ChatDatabaseHelper;
 import com.ogsoft.scobimessenger.services.Tools;
 
 import org.json.JSONException;
@@ -30,10 +31,14 @@ public class RegisterActivity extends AppCompatActivity {
 
     private ProgressDialog pd;
 
+    private ChatDatabaseHelper helper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        helper = ChatDatabaseHelper.getInstance(this);
 
         et_name = findViewById(R.id.et_name);
         et_username = findViewById(R.id.et_username);
@@ -121,6 +126,8 @@ public class RegisterActivity extends AppCompatActivity {
                                         loggedInUser.updatedAt = updatedAt;
 
                                         // Save loggedInUser to local db
+                                        helper.addOrUpdateUser(loggedInUser);
+
                                         editor.putString("uuid", uuid);
                                         editor.putString("name", name);
                                         editor.putString("username", username);
