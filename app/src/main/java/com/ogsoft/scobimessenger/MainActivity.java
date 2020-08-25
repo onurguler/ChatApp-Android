@@ -1,12 +1,24 @@
 package com.ogsoft.scobimessenger;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
@@ -36,7 +48,10 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<Conversation> conversationArrayList;
 
+    private ProgressDialog pd;
+
     private User currentUser;
+    private Token token;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         AndroidNetworking.initialize(getApplicationContext());
 
         currentUser = LocalUserService.getLocalUserFromPreferences(this);
+        token = LocalTokenService.getLocalTokenFromPreferences(this);
 
         RecyclerView rv_conversationList = findViewById(R.id.rv_conversationList);
         conversationArrayList = new ArrayList<Conversation>();
@@ -80,19 +96,19 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Check if token exists in local db
-        Token token = LocalTokenService.getLocalTokenFromPreferences(this);
+        token = LocalTokenService.getLocalTokenFromPreferences(this);
         if (token.key == null) {
             // Send to LoginActivity
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
         }
+
+        getConversationsFromApi();
     }
 
     private void getConversationsFromApi() {
         if (Tools.isNetworkAvailable(this)) {
-            Token token = LocalTokenService.getLocalTokenFromPreferences(this);
-
             if (token.key != null) {
                 AndroidNetworking.get(APIEndpoints.getAllConversations)
                         .addHeaders("Authorization", Token.prefix + " " + token.key)
@@ -180,5 +196,127 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         startActivity(intent);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.menu_new_message) {
+            showNewMessageDialog();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showNewMessageDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.new_message);
+
+        final EditText et_username = new EditText(this);
+        et_username.setInputType(InputType.TYPE_CLASS_TEXT);
+        et_username.setHint("Enter recipient username");
+        builder.setView(et_username);
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+
+        builder.setPositiveButton("Start conversation", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                startNewConversation(et_username.getText().toString());
+            }
+        });
+
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+
+        et_username.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (TextUtils.isEmpty(editable)) {
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                } else {
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                }
+            }
+        });
+    }
+
+    private void startNewConversation(String username) {
+        // TODO: Check conversation exists in local db
+        if (!Tools.isNetworkAvailable(this)) {
+            Toast.makeText(this, "Please check your internet connection!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        pd = new ProgressDialog(this);
+        pd.setTitle("Loading...");
+        pd.setCancelable(false);
+        pd.show();
+
+        AndroidNetworking.get(APIEndpoints.getUserByUsername)
+                .addPathParameter("username", username)
+                .addHeaders("Authorization", Token.prefix + " " + token.key)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        pd.hide();
+
+                        try {
+                            JSONObject dataObject = response.getJSONObject("data");
+                            JSONObject userObject = dataObject.getJSONObject("user");
+                            User user = new User();
+                            user.uuid = userObject.getString("_id");
+                            user.name = userObject.optString("name");
+                            user.username = userObject.getString("username");
+                            user.createdAt = userObject.getString("createdAt");
+                            user.updatedAt = userObject.getString("updatedAt");
+
+                            // TODO: save user to sqlite
+
+                            Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                            intent.putExtra("conversationType", Conversation.TYPE_PRIVATE);
+                            intent.putExtra("isNewConversation", true);
+                            if (user.name != null && !user.name.isEmpty()) {
+                                intent.putExtra("displayName", user.name);
+                            } else {
+                                intent.putExtra("displayName", user.username);
+                            }
+                            intent.putExtra("recipientUsername", user.username);
+                            startActivity(intent);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+                        pd.hide();
+                    }
+                });
     }
 }

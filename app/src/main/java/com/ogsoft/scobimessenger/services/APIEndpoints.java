@@ -16,4 +16,8 @@ public class APIEndpoints {
 
     public static final String sendMessageToConversation = BASE_URL + "/api/v1/chats/conversations/{id}";
 
+    public static final String sendMessageToUser = BASE_URL + "/api/v1/chats/users/{username}";
+
+    public static final String getUserByUsername = BASE_URL + "/api/v1/users/user/{username}";
+
 }

@@ -52,6 +52,9 @@ public class ChatActivity extends AppCompatActivity {
     private Socket socket;
     private boolean isConnected = false;
 
+    private boolean isNewConversation = false;
+    String recipientUsername;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +83,12 @@ public class ChatActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        isNewConversation = getIntent().getBooleanExtra("isNewConversation", false);
+
+        if (isNewConversation) {
+            recipientUsername = getIntent().getStringExtra("recipientUsername");
+        }
+
         et_message = findViewById(R.id.et_message);
 
         conversationUUID = getIntent().getStringExtra("conversationUUID");
@@ -91,7 +100,9 @@ public class ChatActivity extends AppCompatActivity {
         messageListAdapter = new MessageListAdapter(this, messageArrayList, currentUser, conversation);
         rv_messageList.setAdapter(messageListAdapter);
 
-        getConversationAndMessagesFromApi();
+        if (!isNewConversation) {
+            getConversationAndMessagesFromApi();
+        }
     }
 
     private void getConversationAndMessagesFromApi() {
@@ -143,6 +154,7 @@ public class ChatActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
+
                                 getConversationMessagesFromApi();
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -223,21 +235,60 @@ public class ChatActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        AndroidNetworking.post(APIEndpoints.sendMessageToConversation)
-                .addPathParameter("id", conversationUUID)
-                .addHeaders("Authorization", Token.prefix + " " + token.key)
-                .addJSONObjectBody(bodyObject)
-                .build()
-                .getAsJSONObject(new JSONObjectRequestListener() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                    }
+        if (isNewConversation) {
+            AndroidNetworking.post(APIEndpoints.sendMessageToUser)
+                    .addPathParameter("username", recipientUsername)
+                    .addHeaders("Authorization", Token.prefix + " " + token.key)
+                    .addJSONObjectBody(bodyObject)
+                    .build()
+                    .getAsJSONObject(new JSONObjectRequestListener() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                JSONObject dataObject = response.getJSONObject("data");
+                                JSONObject messageObject = dataObject.getJSONObject("message");
 
-                    @Override
-                    public void onError(ANError anError) {
+                                Message message = new Message();
+                                message.uuid = messageObject.getString("_id");
+                                message.user = messageObject.getString("user");
+                                message.conversation = messageObject.getString("conversation");
+                                message.text = messageObject.getString("text");
+                                message.createdAt = messageObject.getString("createdAt");
+                                message.updatedAt = messageObject.getString("updatedAt");
 
-                    }
-                });
+                                if (isNewConversation) {
+                                    conversationUUID = message.conversation;
+                                    isNewConversation = false;
+
+                                    getConversationAndMessagesFromApi();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onError(ANError anError) {
+
+                        }
+                    });
+        } else {
+            AndroidNetworking.post(APIEndpoints.sendMessageToConversation)
+                    .addPathParameter("id", conversationUUID)
+                    .addHeaders("Authorization", Token.prefix + " " + token.key)
+                    .addJSONObjectBody(bodyObject)
+                    .build()
+                    .getAsJSONObject(new JSONObjectRequestListener() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                        }
+
+                        @Override
+                        public void onError(ANError anError) {
+
+                        }
+                    });
+        }
     }
 
     private void initializeSocket() {
