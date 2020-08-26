@@ -110,6 +110,23 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        currentUser = LocalUserService.getLocalUserFromPreferences(this);
+        token = LocalTokenService.getLocalTokenFromPreferences(this);
+
+        if (!isNewConversation) {
+            conversation = helper.getConversationByUUID(conversationUUID, currentUser);
+            messageArrayList = helper.getAllConversationMessages(conversationUUID);
+            if (messageArrayList.size() > 0) {
+                messageListAdapter = new MessageListAdapter(this, messageArrayList, currentUser, conversation);
+                rv_messageList.setAdapter(messageListAdapter);
+            }
+        }
+    }
+
     private void getConversationAndMessagesFromApi() {
         if (Tools.isNetworkAvailable(this)) {
             AndroidNetworking.get(APIEndpoints.getConversation)

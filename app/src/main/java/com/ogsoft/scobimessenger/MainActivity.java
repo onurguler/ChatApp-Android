@@ -66,25 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
         helper = ChatDatabaseHelper.getInstance(this);
 
-        currentUser = LocalUserService.getLocalUserFromPreferences(this);
-        token = LocalTokenService.getLocalTokenFromPreferences(this);
-
         rv_conversationList = findViewById(R.id.rv_conversationList);
-        conversationArrayList = new ArrayList<Conversation>();
-        conversationListAdapter = new ConversationListAdapter(conversationArrayList, currentUser);
         rv_conversationList.setLayoutManager(new LinearLayoutManager(this));
-        rv_conversationList.setAdapter(conversationListAdapter);
-
-        View.OnClickListener onConversationClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onClickConversation(view);
-            }
-        };
-
-        conversationListAdapter.setOnItemClickListener(onConversationClickListener);
-
-        getConversationsFromApi();
     }
 
     @Override
@@ -108,12 +91,10 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
+            return;
         }
 
         conversationArrayList = helper.getAllConversations(currentUser);
-        for (Conversation conversation: conversationArrayList) {
-            System.out.println(conversation.uuid);
-        }
         conversationListAdapter = new ConversationListAdapter(conversationArrayList, currentUser);
         rv_conversationList.setAdapter(conversationListAdapter);
 
