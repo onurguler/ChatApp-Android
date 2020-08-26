@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class ChatDatabaseHelper extends SQLiteOpenHelper {
     // Database Info
     private static final String DATABASE_NAME = "scobiMessenger";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     // Table names
     private static final String TABLE_USERS = "users";
@@ -68,8 +68,8 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                     KEY_USER_NAME + " TEXT," +
                     KEY_USER_USERNAME + " TEXT," +
                     KEY_USER_EMAIL + " TEXT," +
-                    KEY_USER_CREATED_AT + " TEXT," +
-                    KEY_USER_UPDATED_AT + " TEXT" +
+                    KEY_USER_CREATED_AT + " DATETIME," +
+                    KEY_USER_UPDATED_AT + " DATETIME" +
                 ")";
 
         String CREATE_CONVERSATIONS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_CONVERSATIONS +
@@ -79,8 +79,8 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 KEY_CONVERSATION_TYPE + " TEXT," +
                 KEY_CONVERSATION_PARTICIPANTS + " TEXT," +
                 KEY_CONVERSATION_LAST_MESSAGE + " TEXT," +
-                KEY_CONVERSATION_CREATED_AT + " TEXT," +
-                KEY_CONVERSATION_UPDATED_AT + " TEXT" +
+                KEY_CONVERSATION_CREATED_AT + " DATETIME," +
+                KEY_CONVERSATION_UPDATED_AT + " DATETIME" +
                 ")";
 
         String CREATE_MESSAGES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MESSAGES +
@@ -90,8 +90,8 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 KEY_MESSAGE_USER + " TEXT," +
                 KEY_MESSAGE_CONVERSATION + " TEXT," +
                 KEY_MESSAGE_TEXT + " TEXT," +
-                KEY_MESSAGE_CREATED_AT + " TEXT," +
-                KEY_MESSAGE_UPDATED_AT + " TEXT" +
+                KEY_MESSAGE_CREATED_AT + " DATETIME," +
+                KEY_MESSAGE_UPDATED_AT + " DATETIME" +
                 ")";
 
         db.execSQL(CREATE_USERS_TABLE);
@@ -295,10 +295,11 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
     public ArrayList<Message> getAllConversationMessages(String conversationUUID) {
         ArrayList<Message> messages = new ArrayList<>();
 
-        String MESSAGES_SELECT_QUERY = String.format("SELECT * FROM %s WHERE %s = '%s'",
+        String MESSAGES_SELECT_QUERY = String.format("SELECT * FROM %s WHERE %s = '%s' ORDER BY datetime(%s)",
                 TABLE_MESSAGES,
                 KEY_MESSAGE_CONVERSATION,
-                conversationUUID);
+                conversationUUID,
+                KEY_MESSAGE_CREATED_AT);
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(MESSAGES_SELECT_QUERY, null);
