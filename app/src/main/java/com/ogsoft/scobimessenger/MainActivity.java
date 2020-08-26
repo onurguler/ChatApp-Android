@@ -32,6 +32,7 @@ import com.ogsoft.scobimessenger.models.Message;
 import com.ogsoft.scobimessenger.models.Token;
 import com.ogsoft.scobimessenger.models.User;
 import com.ogsoft.scobimessenger.services.APIEndpoints;
+import com.ogsoft.scobimessenger.services.ChatDatabaseHelper;
 import com.ogsoft.scobimessenger.services.LocalTokenService;
 import com.ogsoft.scobimessenger.services.LocalUserService;
 import com.ogsoft.scobimessenger.services.Tools;
@@ -53,12 +54,16 @@ public class MainActivity extends AppCompatActivity {
     private User currentUser;
     private Token token;
 
+    private ChatDatabaseHelper helper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         AndroidNetworking.initialize(getApplicationContext());
+
+        helper = ChatDatabaseHelper.getInstance(this);
 
         currentUser = LocalUserService.getLocalUserFromPreferences(this);
         token = LocalTokenService.getLocalTokenFromPreferences(this);
@@ -161,6 +166,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
 
                                         conversationArrayList.add(conversation);
+
+                                        // Save conversation to local db
+                                        helper.addOrUpdateConversation(conversation);
                                     }
 
                                     conversationListAdapter.notifyDataSetChanged();
@@ -296,7 +304,8 @@ public class MainActivity extends AppCompatActivity {
                             user.createdAt = userObject.getString("createdAt");
                             user.updatedAt = userObject.getString("updatedAt");
 
-                            // TODO: save user to sqlite
+                            // Save user to local db
+                            helper.addOrUpdateUser(user);
 
                             Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
                             intent.putExtra("conversationType", Conversation.TYPE_PRIVATE);

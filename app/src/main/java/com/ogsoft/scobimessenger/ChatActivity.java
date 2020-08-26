@@ -19,6 +19,7 @@ import com.ogsoft.scobimessenger.models.Message;
 import com.ogsoft.scobimessenger.models.Token;
 import com.ogsoft.scobimessenger.models.User;
 import com.ogsoft.scobimessenger.services.APIEndpoints;
+import com.ogsoft.scobimessenger.services.ChatDatabaseHelper;
 import com.ogsoft.scobimessenger.services.LocalTokenService;
 import com.ogsoft.scobimessenger.services.LocalUserService;
 import com.ogsoft.scobimessenger.services.Tools;
@@ -55,10 +56,14 @@ public class ChatActivity extends AppCompatActivity {
     private boolean isNewConversation = false;
     String recipientUsername;
 
+    private ChatDatabaseHelper helper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        helper = ChatDatabaseHelper.getInstance(this);
 
         currentUser = LocalUserService.getLocalUserFromPreferences(this);
         token = LocalTokenService.getLocalTokenFromPreferences(this);
@@ -155,6 +160,8 @@ public class ChatActivity extends AppCompatActivity {
                                     }
                                 }
 
+                                helper.addOrUpdateConversation(conversation);
+
                                 getConversationMessagesFromApi();
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -196,6 +203,8 @@ public class ChatActivity extends AppCompatActivity {
                                     message.updatedAt = messageObject.getString("updatedAt");
 
                                     messageArrayList.add(message);
+
+                                    helper.addOrUpdateMessage(message);
                                 }
                                 messageListAdapter.notifyDataSetChanged();
                                 initializeSocket();
@@ -255,6 +264,8 @@ public class ChatActivity extends AppCompatActivity {
                                 message.text = messageObject.getString("text");
                                 message.createdAt = messageObject.getString("createdAt");
                                 message.updatedAt = messageObject.getString("updatedAt");
+
+                                helper.addOrUpdateMessage(message);
 
                                 if (isNewConversation) {
                                     conversationUUID = message.conversation;
@@ -364,6 +375,8 @@ public class ChatActivity extends AppCompatActivity {
                         messageListAdapter.notifyDataSetChanged();
 
                         rv_messageList.smoothScrollToPosition(messageArrayList.size() - 1);
+
+                        helper.addOrUpdateMessage(message);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
