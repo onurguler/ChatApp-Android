@@ -2,6 +2,7 @@ package com.ogsoft.scobimessenger.services;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -9,10 +10,12 @@ import com.ogsoft.scobimessenger.models.Conversation;
 import com.ogsoft.scobimessenger.models.Message;
 import com.ogsoft.scobimessenger.models.User;
 
+import java.util.ArrayList;
+
 public class ChatDatabaseHelper extends SQLiteOpenHelper {
     // Database Info
     private static final String DATABASE_NAME = "scobiMessenger";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
 
     // Table names
     private static final String TABLE_USERS = "users";
@@ -228,7 +231,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
             int rows = db.update(TABLE_MESSAGES, values, whereClause, new String[]{message.uuid, message.user, message.conversation});
 
             if (rows != 1) {
-                db.insertOrThrow(TABLE_CONVERSATIONS, null, values);
+                db.insertOrThrow(TABLE_MESSAGES, null, values);
             }
 
             db.setTransactionSuccessful();
@@ -237,6 +240,118 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         } finally {
             db.endTransaction();
         }
+    }
+
+    public ArrayList<Conversation> getAllConversations(User currentUser) {
+        ArrayList<Conversation> conversations = new ArrayList<>();
+
+        String CONVERSATIONS_SELECT_QUERY = "SELECT * from " + TABLE_CONVERSATIONS + " WHERE " + KEY_CONVERSATION_PARTICIPANTS + " LIKE '%" + currentUser.uuid + "%'";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(CONVERSATIONS_SELECT_QUERY, null);
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    Conversation newConversation = new Conversation();
+                    newConversation.id = cursor.getInt(cursor.getColumnIndex(KEY_CONVERSATION_ID));
+                    newConversation.uuid = cursor.getString(cursor.getColumnIndex(KEY_CONVERSATION_UUID));
+                    newConversation.type = cursor.getString(cursor.getColumnIndex(KEY_CONVERSATION_TYPE));
+
+                    String[] participantUUIDs = cursor.getString(cursor.getColumnIndex(KEY_CONVERSATION_PARTICIPANTS)).split(",");
+                    for (String participantUUID : participantUUIDs) {
+                        newConversation.participants.add(getUserByUUID(participantUUID));
+                    }
+
+                    if (newConversation.type.equals(Conversation.TYPE_PRIVATE)) {
+                        String toUserUUID = participantUUIDs[0];
+                        for (int i = 1; i < participantUUIDs.length; i++) {
+                            if (!participantUUIDs[i].equals(currentUser.uuid)) {
+                                toUserUUID = participantUUIDs[i];
+                                break;
+                            }
+                        }
+
+                        newConversation.toUser = getUserByUUID(toUserUUID);
+                    }
+
+                    newConversation.lastMessage = getMessageByUUID(cursor.getString(cursor.getColumnIndex(KEY_CONVERSATION_LAST_MESSAGE)));
+                    newConversation.createdAt = cursor.getString(cursor.getColumnIndex(KEY_CONVERSATION_CREATED_AT));
+                    newConversation.updatedAt = cursor.getString(cursor.getColumnIndex(KEY_CONVERSATION_UPDATED_AT));
+
+                    conversations.add(newConversation);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return conversations;
+    }
+
+    public User getUserByUUID(String uuid) {
+        User user = new User();
+
+        String USER_SELECT_QUERY = String.format("SELECT * from %s WHERE %s = '%s'",
+                TABLE_USERS,
+                KEY_USER_UUID,
+                uuid);
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(USER_SELECT_QUERY, null);
+        try {
+            if (cursor.moveToFirst()) {
+                user.id = cursor.getInt(cursor.getColumnIndex(KEY_USER_ID));
+                user.uuid = cursor.getString(cursor.getColumnIndex(KEY_USER_UUID));
+                user.name = cursor.getString(cursor.getColumnIndex(KEY_USER_NAME));
+                user.username = cursor.getString(cursor.getColumnIndex(KEY_USER_USERNAME));
+                user.email = cursor.getString(cursor.getColumnIndex(KEY_USER_EMAIL));
+                user.createdAt = cursor.getString(cursor.getColumnIndex(KEY_USER_CREATED_AT));
+                user.updatedAt = cursor.getString(cursor.getColumnIndex(KEY_USER_UPDATED_AT));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return user;
+    }
+
+    public Message getMessageByUUID(String uuid) {
+        Message message = new Message();
+
+        String MESSAGE_SELECT_QUERY = String.format("SELECT * from %s WHERE %s = '%s'",
+                TABLE_MESSAGES,
+                KEY_MESSAGE_UUID,
+                uuid);
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(MESSAGE_SELECT_QUERY, null);
+        try {
+            if (cursor.moveToFirst()) {
+                message.id = cursor.getInt(cursor.getColumnIndex(KEY_MESSAGE_ID));
+                message.uuid = cursor.getString(cursor.getColumnIndex(KEY_MESSAGE_UUID));
+                message.user = cursor.getString(cursor.getColumnIndex(KEY_MESSAGE_USER));
+                message.conversation = cursor.getString(cursor.getColumnIndex(KEY_MESSAGE_CONVERSATION));
+                message.text = cursor.getString(cursor.getColumnIndex(KEY_MESSAGE_TEXT));
+                message.createdAt = cursor.getString(cursor.getColumnIndex(KEY_MESSAGE_CREATED_AT));
+                message.updatedAt = cursor.getString(cursor.getColumnIndex(KEY_MESSAGE_UPDATED_AT));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return message;
     }
 
     public static synchronized  ChatDatabaseHelper getInstance(Context context) {

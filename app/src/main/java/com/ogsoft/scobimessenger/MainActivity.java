@@ -45,6 +45,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    private RecyclerView rv_conversationList;
     private ConversationListAdapter conversationListAdapter;
 
     private ArrayList<Conversation> conversationArrayList;
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         currentUser = LocalUserService.getLocalUserFromPreferences(this);
         token = LocalTokenService.getLocalTokenFromPreferences(this);
 
-        RecyclerView rv_conversationList = findViewById(R.id.rv_conversationList);
+        rv_conversationList = findViewById(R.id.rv_conversationList);
         conversationArrayList = new ArrayList<Conversation>();
         conversationListAdapter = new ConversationListAdapter(conversationArrayList, currentUser);
         rv_conversationList.setLayoutManager(new LinearLayoutManager(this));
@@ -108,6 +109,22 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         }
+
+        conversationArrayList = helper.getAllConversations(currentUser);
+        for (Conversation conversation: conversationArrayList) {
+            System.out.println(conversation.uuid);
+        }
+        conversationListAdapter = new ConversationListAdapter(conversationArrayList, currentUser);
+        rv_conversationList.setAdapter(conversationListAdapter);
+
+        View.OnClickListener onConversationClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onClickConversation(view);
+            }
+        };
+
+        conversationListAdapter.setOnItemClickListener(onConversationClickListener);
 
         getConversationsFromApi();
     }
