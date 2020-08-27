@@ -109,6 +109,13 @@ public class ChatActivity extends AppCompatActivity {
         if (!isNewConversation) {
             getConversationAndMessagesFromApi();
         }
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
     }
 
     @Override
