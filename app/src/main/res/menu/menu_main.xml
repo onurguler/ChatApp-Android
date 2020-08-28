@@ -4,4 +4,7 @@
     <item android:id="@+id/menu_new_message"
         android:title="@string/new_message" />
 
+    <item android:id="@+id/menu_settings"
+        android:title="@string/settings" />
+
 </menu>

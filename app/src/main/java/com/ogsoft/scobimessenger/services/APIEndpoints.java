@@ -20,4 +20,6 @@ public class APIEndpoints {
 
     public static final String getUserByUsername = BASE_URL + "/api/v1/users/user/{username}";
 
+    public static final String updateMe = BASE_URL + "/api/v1/users/me";
+
 }

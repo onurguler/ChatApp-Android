@@ -218,6 +218,10 @@ public class MainActivity extends AppCompatActivity {
             showNewMessageDialog();
         }
 
+        if (id == R.id.menu_settings) {
+            showSettingsActivity();
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -325,5 +329,10 @@ public class MainActivity extends AppCompatActivity {
                         pd.hide();
                     }
                 });
+    }
+
+    private void showSettingsActivity() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 }
