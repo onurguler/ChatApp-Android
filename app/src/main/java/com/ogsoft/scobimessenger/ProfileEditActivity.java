@@ -1,14 +1,26 @@
 package com.ogsoft.scobimessenger;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.ImageDecoder;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -34,9 +46,12 @@ import org.json.JSONObject;
 
 import java.util.Objects;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class ProfileEditActivity extends AppCompatActivity {
 
     private TextView tv_name, tv_username, tv_email;
+    private CircleImageView iv_avatar;
 
     private User currentUser;
 
@@ -65,6 +80,7 @@ public class ProfileEditActivity extends AppCompatActivity {
             }
         });
 
+        iv_avatar = findViewById(R.id.iv_avatar);
         tv_name = findViewById(R.id.tv_name);
         tv_username = findViewById(R.id.tv_username);
         tv_email = findViewById(R.id.tv_email);
@@ -98,6 +114,7 @@ public class ProfileEditActivity extends AppCompatActivity {
 
         final AlertDialog dialog = builder.create();
         dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 
         et_name.addTextChangedListener(new TextWatcher() {
             @Override
@@ -147,6 +164,7 @@ public class ProfileEditActivity extends AppCompatActivity {
 
         final AlertDialog dialog = builder.create();
         dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 
         et_username.addTextChangedListener(new TextWatcher() {
             @Override
@@ -196,6 +214,7 @@ public class ProfileEditActivity extends AppCompatActivity {
 
         final AlertDialog dialog = builder.create();
         dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 
         et_email.addTextChangedListener(new TextWatcher() {
             @Override
@@ -290,6 +309,19 @@ public class ProfileEditActivity extends AppCompatActivity {
                 });
     }
 
+    public void onClickAvatar(View view) {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 101);
+        } else {
+            showPickImageFromGallery();
+        }
+    }
+
+    private void showPickImageFromGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, 102);
+    }
+
     private void updateUI() {
         currentUser = LocalUserService.getLocalUserFromPreferences(this);
 
@@ -309,6 +341,40 @@ public class ProfileEditActivity extends AppCompatActivity {
             tv_email.setText(currentUser.email);
         } else {
             tv_email.setText("");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 101) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                showPickImageFromGallery();
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 102 && resultCode == Activity.RESULT_OK && data != null) {
+            Uri selectedPicUri = data.getData();
+            try {
+                if (selectedPicUri != null) {
+                    if (Build.VERSION.SDK_INT >= 28) {
+                        ImageDecoder.Source source = ImageDecoder.createSource(getContentResolver(), selectedPicUri);
+                        Bitmap bitmap = ImageDecoder.decodeBitmap(source);
+                        iv_avatar.setImageBitmap(bitmap);
+                    } else {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedPicUri);
+                        iv_avatar.setImageBitmap(bitmap);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
